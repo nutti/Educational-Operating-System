@@ -9,7 +9,12 @@
 
 #include "graphics.h"
 
-extern char std_font[ 8 * 16 * 2 ];
+extern char std_font[ 8 * 16 * 52 ];
+//char* std_font = 0x280000;
+
+const int OFFSET = 0x280000;
+//const int OFFSET = 0x0;
+
 
 void init_palette()
 {
@@ -36,13 +41,13 @@ void print( int x, int y, char c )
 	for( j = 0; j < 16; ++j ){
 		for( k = 0; k < 8; ++k ){
 			if( c >= 'A' && c <= 'Z' ){
-				asm_write_mem( i + ( x + k ) + ( y + j ) * 320, std_font[ k + j * 8 + ( c - 'A' + 10 ) * 8 * 16 ] );
+				asm_write_mem( i + ( x + k ) + ( y + j ) * 320, std_font[ OFFSET + k + j * 8 + ( c - 'A' + 10 ) * 8 * 16 ] );
 			}
 			else if( c >= 'a' && c <= 'z' ){
-				asm_write_mem( i + ( x + k ) + ( y + j ) * 320, std_font[ k + j * 8 + ( c - 'a' + 10 + 26 ) * 8 * 16 ] );
+				asm_write_mem( i + ( x + k ) + ( y + j ) * 320, std_font[ OFFSET + k + j * 8 + ( c - 'a' + 10 + 26 ) * 8 * 16 ] );
 			}	
 			else if( c >= '0' && c <= '9' ){
-				asm_write_mem( i + ( x + k ) + ( y + j ) * 320, std_font[ k + j * 8 + ( c - '0' ) * 8 * 16 ] );
+				asm_write_mem( i + ( x + k ) + ( y + j ) * 320, std_font[ OFFSET + k + j * 8 + ( c - '0' ) * 8 * 16 ] );
 			}
 			else if( c == ' ' ){
 			}
@@ -67,6 +72,8 @@ void printf_str( int x, int y, char* pStr, ... )
 	char str[ 256 ];
 	int digit = 1;
 	
+	pStr += OFFSET;
+
 	argv = &pStr;
 	
 	while( *pStr ){

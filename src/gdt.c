@@ -19,6 +19,7 @@ void InitGDT()
 	}
 	SetSegDesc( pDesc + 1, 0xffffffff, 0x00000000, 0x4092 );	// 全メモリアクセス用
 	SetSegDesc( pDesc + 2, 0x0007ffff, 0x00280000, 0x409a );
+	SetSegDesc( pDesc + 3, 0x0007ffff, 0x00290000, 0x4092 );
 	asm_lgdt( 0xffff, 0x00270000 );
 }
 

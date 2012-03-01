@@ -12,13 +12,9 @@ SECTIONS{
 		ipl.o;
 	_ipl_end = .;
 		setup.o;
-		
 		_kernel_main_begin = .;
 		
 		
-		jmpmain.o;
-		main.o;
-		asm_util.o;
 		
 		
 		
@@ -27,10 +23,6 @@ SECTIONS{
 		
 		
 		
-		font.o;
-		graphics.o;
-		gdt.o;
-		int.o;
 		
 		
 		
@@ -49,4 +41,5 @@ SECTIONS{
 	_kernel_end_sector = ((_kernel_end - _kernel_begin + _kernel_main_end - _kernel_main_begin ) + 511) / 512;
 	_kernel_size = _kernel_end - _kernel_begin;
 	_kernel_main_size = _kernel_main_end - _kernel_main_begin;
+	_boot_size = _kernel_main_begin - _ipl_begin + 0x1000;
 }

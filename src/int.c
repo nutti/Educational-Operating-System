@@ -19,10 +19,11 @@ void InitIDT()
 	for( i = 0; i < NUM_IDT; ++i ){
 		SetGateDesc( pDesc + i, 0, 0, 0 );
 	}
-	printf_str( 20, 20, "%d", (int)IntHook21 );
+	//printf_str( 20, 20, "%d", (int)IntHook21 );
 	// ここが多分問題。
-	SetGateDesc( pDesc + 0x21, (int)0x18d, 2 * 8, AR_INTGATE32 );
-	printf_str( 20, 100, "%d", (int)IntHook21 );
+	//SetGateDesc( pDesc + 0x21, (int)0x18d, 2 * 8, AR_INTGATE32 );
+	SetGateDesc( pDesc + 0x21, (int)IntHandler21, 2 * 8, AR_INTGATE32 );
+	//printf_str( 20, 100, "%d", (int)IntHook21 );
 	
 	LoadIDT( 0x7ff, IDT_ADDR );
 }
@@ -65,10 +66,15 @@ void InitPIC()
 
 void IntHandler21( int* esp )
 {
+	print( 0, 50, 'c' );
+	//printf_str( 0, 30, "aa" );
+
 	asm_out8( PIC0_OCW2, 0x61 );
 	
 	for(;;){
-		printf_str( 0, 80, "Interrupted!!" );
+		//asm_halt();
+		printf_str( 0, 80, "Interrupted!!%d", (int)IntHandler21 );
+		asm_halt();
 	}
 	//for(;;){
 	//	asm_halt();

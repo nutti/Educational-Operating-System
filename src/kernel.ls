@@ -5,13 +5,11 @@ OUTPUT_ARCH(i386)
 SECTIONS{
 	
 	
-	. = 0x1000;
+	. = 0x0;
 	_kernel_begin = .;
-	ipl 0x1000 : {
+	ipl 0x0 : {
 	_ipl_begin = .;
-		ipl.o;
 	_ipl_end = .;
-		setup.o;
 		
 		_kernel_main_begin = .;
 		

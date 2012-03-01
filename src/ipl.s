@@ -128,6 +128,7 @@ read_kernel:
 advance_read_kernel_sector:
 	incw	%si									# SI = SI + 1 (Advance sector number.)
 	cmpw	$_kernel_end_sector, %si
+	cmpw	$0x20, %si
 	jb		read_kernel						# kernel_end_sector > SI
 	
 	movw	$DISK_READ_MSG, %si
