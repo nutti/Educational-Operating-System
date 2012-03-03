@@ -15,5 +15,8 @@ void LoadIDT( int limit, int addr );
 void IntHook21();
 void asm_enable_intr();
 void asm_disable_intr();
+void load_tr();
+void switch_task();
+
 
 #endif

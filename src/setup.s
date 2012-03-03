@@ -76,7 +76,6 @@ set_cs:
 	# セグメントの変更
 	movw	$0x10, %ax
 	movw	%ax, %ds
-	#movw	$0x18, %ds
 	movw	%ax, %es
 	movw	%ax, %fs
 	movw	%ax, %gs
@@ -91,18 +90,26 @@ set_cs:
 .code32
 	
 fin:
-	
+#hlt
 	#call	test
 	lgdt	gdtr2
 	#ljmp	$0x8, $0x280000
+	
 end:
 	# call test でhaltを呼んでいるため、ここには戻ってこないはず。
 	#call	asm_halt
 	#movw	$0x18, %ax
 	#movw	%ax, %ds
 	#movw	$0x10, %ax
-	#hlt
-	ljmp	$0x10, $0
+	movw	$0x10, %ax
+	movw	%ax, %ds
+movw	%ax, %es
+	movw	%ax, %fs
+	movw	%ax, %gs
+	movw	%ax, %ss
+
+
+	ljmp	$0x8, $0
 	#hlt		_
 	#ljmp	$0x8, $0x280000
 	hlt
@@ -182,12 +189,12 @@ gdt_null2:
 	
 # カーネルコード
 gdt_kernel_cs2:
-	.word	0xffff, 0x0000, 0x9200, 0x00cf
 
+	.word	0xffff, 0x0000, 0x9a28, 0x0047
 	
 # カーネルデータ
 gdt_kernel_ds2:
-	.word	0xffff, 0x0000, 0x9a28, 0x0047
+	.word	0xffff, 0x0000, 0x9200, 0x00cf
 
 gdt_kernel_ds2_2:
 	.word	0xffff, 0x0000, 0x9a28, 0x0047

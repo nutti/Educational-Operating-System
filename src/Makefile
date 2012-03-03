@@ -20,7 +20,7 @@ OBJDUMP_OPT	= -b binary -m i386 -D
 OBJDUMP_FILE= os.img.objdump
 KERNEL_BIN	= kernel.bin
 BOOT_BIN	= boot.bin
-KERNEL_OBJS	= asm_util.o graphics.o font.o gdt.o main.o jmpmain.o int.o
+KERNEL_OBJS	= asm_util.o graphics.o font.o gdt.o main.o jmpmain.o int.o memory.o tss.o task.o
 BOOT_OBJS	= ipl.o setup.o
 
 all: $(KERNEL_OBJS) $(BOOT_OBJS) $(LINKER_SCRIPT) $(MAKEFILE) font/std.font
@@ -80,3 +80,7 @@ gdt.o : gdt.c
 main.o : main.c
 jmpmain.o : jmpmain.s
 int.o : int.c
+memory.o : memory.c
+tss.o : tss.c
+task.o : task.c
+

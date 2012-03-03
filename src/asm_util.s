@@ -22,7 +22,8 @@
 	.global	LoadIDT
 	.global	IntHook21
 	.extern	IntHandler21
-
+	.global task_switch
+	.global load_tr
 
 ########################################################################
 #
@@ -225,3 +226,26 @@ IntHook21:
 	pop		ds
 	pop		es				# レジスタの復帰
 	iretd					# 割り込みルーチンからの復帰
+
+########################################################################
+#
+#	@name	:	load_tr
+#	@brief	:	Load TR register.
+#	@usage	:	void load_tr( int tr );
+#
+########################################################################
+load_tr:
+	LTR		[ESP+4]
+	RET
+
+########################################################################
+#
+#	@name	:	task_switch
+#	@brief	:	Task switch function.
+#	@usage	:	void task_switch();
+#
+########################################################################
+task_switch:
+	JMP		3 * 8 : 0
+	RET
+

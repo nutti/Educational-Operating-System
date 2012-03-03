@@ -12,8 +12,8 @@
 extern char std_font[ 8 * 16 * 52 ];
 //char* std_font = 0x280000;
 
-const int OFFSET = 0x280000;
-//const int OFFSET = 0x0;
+//const int OFFSET = 0x280000;
+const int OFFSET = 0x0;
 
 
 void init_palette()

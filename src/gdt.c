@@ -10,6 +10,7 @@
 #include "gdt.h"
 #include "asm_util.h"
 
+
 void InitGDT()
 {
 	SegDesc* pDesc = (SegDesc*)GDT_ADDR;
@@ -17,9 +18,10 @@ void InitGDT()
 	for( i = 0; i < NUM_GDT; ++i ){
 		SetSegDesc( pDesc + i, 0, 0, 0 );
 	}
-	SetSegDesc( pDesc + 1, 0xffffffff, 0x00000000, 0x4092 );	// 全メモリアクセス用
-	SetSegDesc( pDesc + 2, 0x0007ffff, 0x00280000, 0x409a );
-	SetSegDesc( pDesc + 3, 0x0007ffff, 0x00290000, 0x4092 );
+	SetSegDesc( pDesc + 2, 0xffffffff, 0x00000000, 0x4092 );	// 全メモリアクセス用
+	SetSegDesc( pDesc + 1, 0x0007ffff, 0x00280000, 0x409a );
+	SetSegDesc( pDesc + 3, 0xffffffff, 0x00000000, 0x409a );
+	//SetSegDesc( pDesc + 3, 0x0007ffff, 0x00290000, 0x4092 );
 	asm_lgdt( 0xffff, 0x00270000 );
 }
 
