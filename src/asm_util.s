@@ -24,6 +24,8 @@
 	.extern	IntHandler21
 	.global task_switch
 	.global load_tr
+	.global switch_task
+
 
 ########################################################################
 #
@@ -235,8 +237,9 @@ IntHook21:
 #
 ########################################################################
 load_tr:
-	LTR		[ESP+4]
+	LTR		[esp+4]
 	RET
+
 
 ########################################################################
 #
@@ -246,6 +249,68 @@ load_tr:
 #
 ########################################################################
 task_switch:
-	JMP		3 * 8 : 0
+	ljmp 	5*8:0x0
+	#hlt
+	#ljmp	$0x20,$0x0
 	RET
 
+
+# switch_task( src, dst )
+switch_task:
+	pushad
+	mov		ebx, [esp+36]	# src
+
+	# Copy to previous task.
+	mov		eax, [esp+32]
+	mov		[ebx+40], eax	# eax
+	mov		eax, [esp+28]
+	mov		[ebx+44], eax	# ecx
+	mov		eax, [esp+24]
+	mov		[ebx+48], eax	# edx
+	mov		eax, [esp+20]
+	mov		[ebx+52], eax	# ebx
+	mov		eax, [esp+16]
+	mov		[ebx+56], eax	# esp
+	mov		eax, [esp+12]
+	mov		[ebx+60], eax	# ebp
+	mov		eax, [esp+8]
+	mov		[ebx+64], eax	# esi
+	mov		eax, [esp+4]
+	mov		[ebx+68], eax	# edi
+	mov		[ebx+72], es	# es
+	mov		[ebx+76], cs	# cs
+	mov		[ebx+80], ss	# ss
+	mov		[ebx+84], ds	# ds
+	mov		[ebx+88], fs	# fs
+	mov		[ebx+92], gs	# gs
+
+	popad
+
+	# Move to destination task.
+	mov		ebx, [esp+8]
+	mov		ecx, [ebx+44]	# ecx
+	mov		edx, [ebx+48]	# edx
+	mov		esp, [ebx+56]	# esp
+	mov		ebp, [ebx+60]	# ebp
+	mov		esi, [ebx+64]	# esi
+	mov		edi, [ebx+68]	# edi
+#	mov		es, [ebx+72]	# es
+#	mov		cs, [ebx+76]	# cs
+#	mov		ss, [ebx+80]	# ss
+#	mov		ds, [ebx+84]	# ds
+	mov		fs, [ebx+88]	# fs
+	mov		gs, [ebx+92]	# gs
+	mov		eax, [ebx+40]	# eax
+#	mov		ebx, [ebx+52]	# ebx
+
+	push	[ebx+80]		# push ss
+	push	[ebx+56]		# push esp
+	push	[ebx+36]		# push eflags
+	push	[ebx+76]		# push cs
+	push	[ebx+32]		# push eip
+	push	[ebx+52]		# push ebx
+	mov		es, [ebx+72]	# es
+	mov		ds, [ebx+84]	# ds
+	pop		ebx
+#	hlt
+	iretd

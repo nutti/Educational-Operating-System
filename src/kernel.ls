@@ -4,8 +4,8 @@ OUTPUT_ARCH(i386)
 
 MEMORY
 {
-	rom (rx)	: org = 0x280000, l = 128K
-	ram (rwx)	: org = 0x0, l = 200K
+	rom (rx)	: org = 0x280000, l = 256K
+	/*ram (rwx)	: org = 0x0, l = 200K*/
 }
 
 SECTIONS
@@ -25,11 +25,11 @@ SECTIONS
 
 	.data : {
 		*(.data)
-	} > ram AT > rom
+	} > rom /*AT > rom*/
 
 	.bss : {
 		*(.bss)
-	} > ram
+	} > rom
 
 	_kernel_begin = .;
 	_ipl_begin = .;

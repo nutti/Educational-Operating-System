@@ -7,7 +7,7 @@ BIN			= os.bin					# Immediate binary file.
 DD			= dd						# Copy.
 QEMU		= qemu						# Emulator
 RM			= rm						# Remove
-LINKER_SCRIPT		= os.ls			# Linker scripts.
+LINKER_SCRIPT		= kernel.ls	boot.ls		# Linker scripts.
 CC			= gcc
 CFLAGS		= -O2 -c -masm=intel -m32 -Wno-pointer-arith -fno-stack-protector
 FONT2ASM	= tools/font2asm.pl

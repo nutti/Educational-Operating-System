@@ -1,37 +1,33 @@
 ##################################################
 #
-#	@file :	ipl.s
-#	@brief :	Boot sector.
-#	@author :	nutti
-#	@date :	2011.9.5 (Mon) 17:30
+#	@file	:	ipl.s
+#	@brief	:	Boot sector.
+#	@author	:	nutti
+#	@date	:	2012.3.5 (Mon) 15:05
 #
 ##################################################
 
 # Start up should be real mode.
-base_address:
 .code16
 
 # Constant numbers
-boot_begin = 0x7c00				# ブートセクタ読み込み先アドレス
-ipl_size = 0x200					# IPLサイズ
-fd_sector_per_track = 0x12		# 1トラックあたりのフロッピーディスクのセクタ数
-fd_sector_length = 512			# セクタの長さ
-kernel_begin_sector = 0x01		# カーネルが始まるセクタ番号
-read_kernel_es_offset = 0x1000	# 0x1000から読み込まれる
+boot_begin_addr = 0x7c00			# Address which the boot begins.
+ipl_size = 0x200					# Size of initial program load.(512 bytes.)
+fd_sector_total_per_track = 0x12	# The number of sector per 1 track on floppy disk.
+fd_sector_size = 512				# The length of sector on floppy disk.
+initial_kernel_sector = 0x01		# The sector number which the kernel begins.
+load_target_addr = 0x1000			# The target address which data on floppy disk is stored.
 
-	.extern	begint
-
+	#.extern	begint
 
 # Jump instruction. ( 3 bytes )
-	jmp		begin
+	jmp		boot_strap_code
 	nop
-	
-	
+		
 # OEM name. ( 8 bytes )
 oem_name:
 	.ascii		"HelloIpl"
-	
-	
+		
 # BIOS Parameter Block ( 51 bytes )
 sector_size:				# Size of sector. ( This value must be 512 in floppy disk. )
 	.word		0x0200
@@ -39,31 +35,31 @@ cluster_size:				# Size of cluster. ( This value must be 1 in floppy disk. )
 	.byte		0x01
 fat_pos:					# Position of FAT.
 	.word		0x0001
-num_fat:					# Number of FAT. ( This value must be 2. )
+fat_num:					# Number of FAT. ( This value must be 2. )
 	.byte		0x02
-root_dir_size:			# Size of root directory.
+root_dir_size:				# Size of root directory.
 	.word		0x00e0
-num_sector:				# Number of sector. ( This value must be 2880. )
+sector_total:				# Number of sector. ( This value must be 2880. )
 	.word		0x0b40
-media_type:				# Media type.
+media_type:					# Media type.
 	.byte		0xf0
 fat_size:					# Size of FAT.
 	.word		0x0009
-num_sector_per_track:	# Number of sector per track.
+sector_total_per_track:		# Number of sector per track.
 	.word		0x0012
-num_head:					# Number of head.
+head_total:					# Number of head.
 	.word		0x0002
 partition:					# Partition.
 	.long		0x0000
-num_sector_re:			# Rewrite number of sector. ( This value must be 2880. )
+sector_total_rewrite:		# Rewrite number of sector. ( This value must be 2880. )
 	.long		0x00000b40
-drive_no:					# Drive number.
+drive_num:					# Drive number.
 	.byte		0x00
 reserved:					# Reserved.
 	.byte		0x00
-ext_boot_code:			# Boot code.
+ext_boot_code:				# Boot code.
 	.byte		0x29
-volume_serial:			# Serial number of volume.
+volume_serial_num:			# Serial number of volume.
 	.long		0xffffffff
 disk_name:					# Disk name.
 	.ascii		"HELLO-OS   "
@@ -74,12 +70,12 @@ fat_name:					# FAT name.
 	
 
 # Bootstrap code ( 448 bytes )
-begin:
+boot_strap_code:
 
 	# Setup registers.
 	movw	$0, %ax
 	movw	%ax, %ss
-	movw	$_kernel_begin, %sp
+	movw	$_kernel_begin, %sp		# Stack pointer is configured to above programs.
 	movw	%ax, %ds
 	movw	%ax, %es
 	
@@ -90,10 +86,10 @@ begin:
 	# rep movsbは、cxレジスタに登録された回数だけ、
 	# [DS:SI]の内容1バイトを[ES:DI]に2バイト転送する。
 	# すなわち、DSとESを0にすることで、セグメントを0に設定し、
-	# siをboot_beginとして、diをkernel_beginとすることで、
+	# siをboot_begin_addrとして、diをkernel_beginとすることで、
 	# 0x7c00から0x1000へipl_size/2すなわち、216回、
 	# 2バイトずつ転送する。
-	movw	$boot_begin, %si
+	movw	$boot_begin_addr, %si
 	movw	$_kernel_begin, %di
 	movw	$(ipl_size / 2 ), %cx
 	rep		movsw
@@ -116,19 +112,19 @@ read_disk:
 	popw	%es	
 	movw	$ipl_end, %di						# ES:DI = 0 + ipl_end ( 0x200 )
 	movb	boot_drive, %dl					# DL must be drive number.
-	movw	$kernel_begin_sector, %si		# SI must be sector number.
+	movw	$initial_kernel_sector, %si		# SI must be sector number.
 read_kernel:
 	call	read_disk_sector
 	jc		show_error_msg
-	addw	$fd_sector_length, %di			# DI = DI + 0x200 (Next sector.)
+	addw	$fd_sector_size, %di			# DI = DI + 0x200 (Next sector.)
 	jnc		advance_read_kernel_sector		# DI < 0xFFFF
 	movw	%es, %ax
-	addw	$read_kernel_es_offset, %ax
-	movw	%ax, %es							# ES += 0x1000
+	addw	$load_target_addr, %ax
+	movw	%ax, %es						# ES += 0x1000
 advance_read_kernel_sector:
-	incw	%si									# SI = SI + 1 (Advance sector number.)
-	cmpw	$_kernel_end_sector, %si
-	cmpw	$0x20, %si
+	incw	%si								# SI = SI + 1 (Advance sector number.)
+#	cmpw	$_kernel_end_sector, %si
+	cmpw	$0x30, %si						# The size of sector to load.
 	jb		read_kernel						# kernel_end_sector > SI
 	
 	movw	$DISK_READ_MSG, %si
@@ -174,8 +170,8 @@ read_disk_sector:
 	movw	%si, %ax
 	
 	# Convert sector to track number.
-	movb	$fd_sector_per_track, %dl
-	divb	%dl								# AX / DL = AH(track), AL(sector, surplus)
+	movb	$fd_sector_total_per_track, %dl
+	divb	%dl					# AX / DL = AH(track), AL(sector, surplus)
 	
 	movb	%al, %ch			# CH must be track number.
 	shrb	$0x01, %ch			# Get sector number in head.
@@ -250,8 +246,7 @@ NEW_LINE:
 	.byte		0x00
 	
 BOOT_MSG:
-	#.byte		0x0a, 0x0a				# 改行コードのようだ
-	.ascii		"Boot from floppy disk...\r\n"		# 復帰を入れないと表示がおかしくなる
+	.ascii		"Boot from floppy disk...\r\n"
 	.byte		0x00
 	
 DISK_RESET_MSG:
@@ -276,8 +271,8 @@ boot_drive:
 #	End of ipl.s.
 #####################################
 	
-# Fill 0.
-	.org		0x1fe					# 510まで0で埋める命令
+# Fill 0 to address 510.
+	.org		0x1fe
 	
 # Signature ( 2 bytes )
 	.short		0xaa55
