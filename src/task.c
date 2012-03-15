@@ -23,7 +23,7 @@ void set_task( unsigned int task, void (*f)(), unsigned char* esp )
 	t->cs = 0x18;
 	t->ds = t->fs = t->gs = t->es = 0x10;
 	t->ss = 0x10;
-	t->eip =  (unsigned int) f;
+	t->eip = -0x280000 +   (unsigned int) f;
 	t->esp = (unsigned int) esp;
 	t->eflags = 0x00000202;
 }

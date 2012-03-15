@@ -25,7 +25,7 @@
 	.global task_switch
 	.global load_tr
 	.global switch_task
-
+	.global switch_task_2
 
 ########################################################################
 #
@@ -294,14 +294,9 @@ switch_task:
 	mov		ebp, [ebx+60]	# ebp
 	mov		esi, [ebx+64]	# esi
 	mov		edi, [ebx+68]	# edi
-#	mov		es, [ebx+72]	# es
-#	mov		cs, [ebx+76]	# cs
-#	mov		ss, [ebx+80]	# ss
-#	mov		ds, [ebx+84]	# ds
 	mov		fs, [ebx+88]	# fs
 	mov		gs, [ebx+92]	# gs
 	mov		eax, [ebx+40]	# eax
-#	mov		ebx, [ebx+52]	# ebx
 
 	push	[ebx+80]		# push ss
 	push	[ebx+56]		# push esp
@@ -312,5 +307,36 @@ switch_task:
 	mov		es, [ebx+72]	# es
 	mov		ds, [ebx+84]	# ds
 	pop		ebx
-#	hlt
 	iretd
+back:
+	ret
+
+switch_task_2:
+	# Save
+	pushad
+	pushfd
+	mov		eax, cs
+	push	eax
+	mov		eax, ss
+	push	eax
+	mov		ebx, [esp+48]
+	
+	mov		[ebx+56], esp		# ESP
+.att_syntax noprefix
+	movl	$toswitch, %eax# 0x435
+.intel_syntax noprefix	
+	sub		eax, 0x280000
+#	hlt
+	mov		[ebx+32], eax		# EIP
+	# Restore
+	mov		ebx, [esp+52]
+	mov		esp, [ebx+56]
+	jmp		[ebx+32]
+toswitch:
+	pop		eax
+	mov		ss, eax
+	pop		eax
+	popfd
+	popad
+	ret
+

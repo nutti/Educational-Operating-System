@@ -1,9 +1,6 @@
 AS			= as						# GNU as
-#SRC			= ipl.s					# Source files
-#OBJCOPY	= objcopy					# Convert binary file from object file.
+BIN			= os.bin
 IMG			= ../image/os.img			# Image file of operating system.
-OBJS		= ipl.o setup.o asm_util.o graphics.o gdt.o main.o jmpmain.o int.o			# Immediate object file.
-BIN			= os.bin					# Immediate binary file.
 DD			= dd						# Copy.
 QEMU		= qemu						# Emulator
 RM			= rm						# Remove
@@ -22,32 +19,26 @@ KERNEL_BIN	= kernel.bin
 BOOT_BIN	= boot.bin
 KERNEL_OBJS	= asm_util.o graphics.o font.o gdt.o main.o jmpmain.o int.o memory.o tss.o task.o
 BOOT_OBJS	= ipl.o setup.o
+DEBUG_DIR	= debug
+
 
 all: $(KERNEL_OBJS) $(BOOT_OBJS) $(LINKER_SCRIPT) $(MAKEFILE) font/std.font
 	-$(RM) font.s
 	$(FONT2ASM) font/std.font font.s
 	$(AS) -o font.o font.s --32
-	#ld $(OBJS) -T $(LINKER_SCRIPT) -o $(BIN)
 	ld $(BOOT_OBJS) -T boot.ls -o $(BOOT_BIN)
 	ld $(KERNEL_OBJS) -T kernel.ls -o $(KERNEL_BIN)
 	cat $(BOOT_BIN) $(KERNEL_BIN) > $(BIN)
 	$(DD) if=/dev/zero of=$(IMG) count=2880
 	$(DD) if=$(BIN) of=$(IMG) conv=notrunc
-	$(OD) $(OD_OPT) $(IMG) > $(OD_OUT_FILE)
-	$(OD) $(OD_OPT) $(KERNEL_BIN) > kernel.bin.od
-	$(OBJDUMP) $(OBJDUMP_OPT) $(IMG) > $(OBJDUMP_FILE)
-	$(OBJDUMP) $(OBJDUMP_OPT) $(KERNEL_BIN) > kernel.bin.objdump
+	-$(RM) -rf $(DEBUG_DIR)
+	mkdir $(DEBUG_DIR)
+	$(OD) $(OD_OPT) $(IMG) > $(DEBUG_DIR)/$(OD_OUT_FILE)
+	$(OD) $(OD_OPT) $(KERNEL_BIN) > $(DEBUG_DIR)/kernel.bin.od
+	$(OBJDUMP) $(OBJDUMP_OPT) $(IMG) > $(DEBUG_DIR)/$(OBJDUMP_FILE)
+	$(OBJDUMP) $(OBJDUMP_OPT) $(KERNEL_BIN) > $(DEBUG_DIR)/kernel.bin.objdump
 
-run: $(KERNEL_OBJS) $(BOOT_OBJS) $(LINKER_SCRIPT) $(MAKEFILE)
-	-$(RM) font.s
-	$(FONT2ASM) font/std.font font.s
-	$(AS) -o font.o font.s --32
-#	ld $(OBJS) -T $(LINKER_SCRIPT) -o $(BIN)
-	ld $(BOOT_OBJS) -T boot.ls -o $(BOOT_BIN)
-	ld $(KERNEL_OBJS) -T kernel.ls -o $(KERNEL_BIN)
-	cat $(BOOT_BIN) $(KERNEL_BIN) > $(BIN)
-	$(DD) if=/dev/zero of=$(IMG) count=2880
-	$(DD) if=$(BIN) of=$(IMG) conv=notrunc
+run: 
 	$(QEMU) -m 128 -fda $(IMG) -monitor stdio
 	
 make_font: $(FONT2ASM) font/std.font
@@ -64,12 +55,17 @@ clean:
 	-$(RM) $(KERNEL_OBJS)
 	-$(RM) $(BOOT_OBJS)
 	-$(RM) $(BIN)
-	
+	-$(RM) $(KERNEL_BIN)
+	-$(RM) $(BOOT_BIN)	
+
 erase:
 	-$(RM) $(KERNEL_OBJS)
 	-$(RM) $(BOOT_OBJS)
 	-$(RM) $(BIN)
 	-$(RM) $(IMG)
+	-$(RM) -rf $(DEBUG_DIR)
+	-$(RM) $(KERNEL_BIN)
+	-$(RM) $(BOOT_BIN)
 	
 ipl.o: ipl.s
 setup.o: setup.s
